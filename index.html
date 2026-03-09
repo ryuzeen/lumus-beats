@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUMUSy2k | Beat Catalog</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&display=swap');
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: #050505;
+            color: #e5e5e5;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #050505; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555; 
+        }
+
+        /* Intro Animation */
+        #intro-screen {
+            transition: opacity 1s ease-in-out, visibility 1s;
+        }
+        .fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        /* Glitch effect for intro */
+        .glitch {
+            position: relative;
+            color: white;
+            font-weight: bold;
+            letter-spacing: 0.1em;
+        }
+        
+        /* Modal Animation */
+        #download-modal {
+            backdrop-filter: blur(5px);
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        #download-modal.active .modal-content {
+            transform: scale(1);
+        }
+
+        /* Beat Card Hover */
+        .beat-card {
+            transition: all 0.3s ease;
+            border: 1px solid #1f1f1f;
+        }
+        .beat-card:hover {
+            border-color: #4a4a4a;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px -10px rgba(255, 255, 255, 0.05);
+        }
+
+        /* Rotating animation for playing state */
+        .playing-img {
+            animation: spin 4s linear infinite;
+            border-radius: 50% !important;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- Intro Screen -->
+    <div id="intro-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#050505]">
+        <h1 class="glitch text-5xl md:text-7xl tracking-widest text-white mb-2 uppercase">LUMUS</h1>
+        <p class="text-zinc-500 tracking-widest text-sm md:text-base">L u m u s y 2 k</p>
+    </div>
+
+    <!-- Main Content (Hidden initially behind intro) -->
+    <div id="main-content" class="flex-1 flex flex-col max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 opacity-0 transition-opacity duration-1000">
+        
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-center mb-12 gap-6 border-b border-zinc-800 pb-8">
+            <div>
+                <h2 class="text-3xl font-bold tracking-wider uppercase">Lumusy2k</h2>
+                <p class="text-zinc-500 text-sm mt-1">Underground Beat Catalog</p>
+            </div>
+            
+            <!-- Search Bar -->
+            <div class="relative w-full md:w-72">
+                <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-500 w-4 h-4"></i>
+                <input 
+                    type="text" 
+                    id="search-input"
+                    placeholder="Search beats..." 
+                    class="w-full bg-zinc-900 border border-zinc-800 text-white text-sm rounded-full focus:ring-1 focus:ring-zinc-500 focus:border-zinc-500 block pl-10 p-2.5 transition-colors outline-none"
+                >
+            </div>
+        </header>
+
+        <!-- Beat List -->
+        <main class="flex-1">
+            <div class="flex justify-between text-xs text-zinc-500 uppercase tracking-widest mb-4 px-4">
+                <span>Title</span>
+                <span class="hidden sm:block ml-auto mr-32">BPM</span>
+                <span>Actions</span>
+            </div>
+            
+            <div id="beats-container" class="flex flex-col gap-3">
+                <!-- Beats will be injected here by JS -->
+            </div>
+            
+            <!-- Empty State -->
+            <div id="no-results" class="hidden text-center py-12 text-zinc-500">
+                <i data-lucide="ghost" class="w-12 h-12 mx-auto mb-3 opacity-50"></i>
+                <p>No beats found matching your search.</p>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="mt-16 py-8 border-t border-zinc-800 text-center text-zinc-600 text-xs">
+            <p>&copy; 2026 LUMUS / Lumusy2k. All rights reserved.</p>
+            <p class="mt-1">Follow the rules for free beats usage.</p>
+        </footer>
+    </div>
+
+    <!-- Download Modal / Terms -->
+    <div id="download-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/80 px-4">
+        <div class="modal-content bg-zinc-950 border border-zinc-800 rounded-xl p-6 md:p-8 max-w-md w-full shadow-2xl relative">
+            <button id="close-modal" class="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            
+            <div class="flex items-center gap-3 mb-4 text-white">
+                <i data-lucide="alert-triangle" class="w-6 h-6 text-yellow-500"></i>
+                <h3 class="text-xl font-bold uppercase tracking-wider">Usage Terms</h3>
+            </div>
+            
+            <div class="space-y-4 text-zinc-400 text-sm leading-relaxed mb-8">
+                <p>
+                    You are about to download <span id="modal-beat-name" class="font-bold text-white"></span>.
+                </p>
+                <p class="p-3 bg-zinc-900 rounded-lg border border-zinc-800 text-zinc-300">
+                    "Don't forget to give credits <strong>'prod. lumus'</strong>. It's free, but if you don't give credits, you are subject to copyright strikes."
+                </p>
+                <p>Do you agree to these terms?</p>
+            </div>
+            
+            <div class="flex gap-3">
+                <button id="btn-cancel" class="flex-1 py-3 px-4 rounded bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-semibold transition-colors uppercase tracking-wider">
+                    Cancel
+                </button>
+                <button id="btn-agree" class="flex-1 py-3 px-4 rounded bg-white hover:bg-gray-200 text-black text-sm font-bold transition-colors uppercase tracking-wider flex items-center justify-center gap-2">
+                    <i data-lucide="download" class="w-4 h-4"></i> I Agree
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // --- Data: Catalog of Beats ---
+        // Note for Lumus: Change the 'img' URL to your pinterest images.
+        // The 'file' property assumes you have an 'audio' folder in your GitHub repo.
+        const beats = [
+            { id: 1, title: 'momento', bpm: 140, img: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop', file: './audio/momento.mp3' },
+            { id: 2, title: 'bruska', bpm: 145, img: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=200&auto=format&fit=crop', file: './audio/bruska.mp3' },
+            { id: 3, title: 'genova', bpm: 130, img: 'https://images.unsplash.com/photo-1605806616949-1e87b487cb2a?q=80&w=200&auto=format&fit=crop', file: './audio/genova.mp3' },
+            { id: 4, title: 'ship', bpm: 150, img: 'https://images.unsplash.com/photo-1508247271966-2826f4945e85?q=80&w=200&auto=format&fit=crop', file: './audio/ship.mp3' },
+            { id: 5, title: 'proly', bpm: 142, img: 'https://images.unsplash.com/photo-1493225457224-aa69b46ee094?q=80&w=200&auto=format&fit=crop', file: './audio/proly.mp3' },
+            { id: 6, title: 'hyato', bpm: 138, img: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=200&auto=format&fit=crop', file: './audio/hyato.mp3' },
+            { id: 7, title: 'shoota', bpm: 160, img: 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?q=80&w=200&auto=format&fit=crop', file: './audio/shoota.mp3' }
+        ];
+
+        // --- Global Audio State ---
+        let currentAudio = null;
+        let currentPlayingId = null;
+        let beatToDownload = null;
+
+        // --- DOM Elements ---
+        const beatsContainer = document.getElementById('beats-container');
+        const searchInput = document.getElementById('search-input');
+        const noResults = document.getElementById('no-results');
+        
+        // Modal Elements
+        const modal = document.getElementById('download-modal');
+        const modalBeatName = document.getElementById('modal-beat-name');
+        const btnCloseModal = document.getElementById('close-modal');
+        const btnCancel = document.getElementById('btn-cancel');
+        const btnAgree = document.getElementById('btn-agree');
+
+        // --- Intro Sequence ---
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const intro = document.getElementById('intro-screen');
+                const mainContent = document.getElementById('main-content');
+                
+                intro.classList.add('fade-out');
+                
+                setTimeout(() => {
+                    intro.style.display = 'none';
+                    mainContent.classList.remove('opacity-0');
+                }, 1000); // Wait for fade out
+            }, 2000); // Show intro for 2 seconds
+        });
+
+        // --- Render Beats ---
+        function renderBeats(filterText = '') {
+            beatsContainer.innerHTML = '';
+            
+            const filteredBeats = beats.filter(beat => 
+                beat.title.toLowerCase().includes(filterText.toLowerCase())
+            );
+
+            if (filteredBeats.length === 0) {
+                noResults.classList.remove('hidden');
+            } else {
+                noResults.classList.add('hidden');
+                
+                filteredBeats.forEach(beat => {
+                    const isPlaying = currentPlayingId === beat.id;
+                    
+                    const card = document.createElement('div');
+                    card.className = `beat-card bg-zinc-900/50 rounded-xl p-3 flex items-center justify-between group ${isPlaying ? 'border-zinc-500' : ''}`;
+                    
+                    card.innerHTML = `
+                        <div class="flex items-center gap-4">
+                            <!-- Image -->
+                            <div class="relative w-12 h-12 md:w-16 md:h-16 rounded-md overflow-hidden bg-zinc-800 flex-shrink-0">
+                                <img src="${beat.img}" alt="${beat.title}" class="w-full h-full object-cover transition-transform duration-500 ${isPlaying ? 'playing-img' : ''}" id="img-${beat.id}">
+                                <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button onclick="togglePlay(${beat.id})" class="text-white hover:scale-110 transition-transform">
+                                        <i data-lucide="${isPlaying ? 'pause' : 'play'}" class="w-6 h-6 fill-current"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Info -->
+                            <div>
+                                <h3 class="font-bold text-white text-base md:text-lg uppercase tracking-wide flex items-center gap-2">
+                                    ${beat.title}
+                                    ${isPlaying ? '<span class="flex h-2 w-2 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span></span>' : ''}
+                                </h3>
+                                <p class="text-zinc-500 text-xs sm:hidden mt-1">${beat.bpm} BPM</p>
+                            </div>
+                        </div>
+
+                        <!-- BPM (Desktop) & Actions -->
+                        <div class="flex items-center gap-6">
+                            <span class="hidden sm:block text-zinc-500 text-sm font-mono">${beat.bpm} BPM</span>
+                            
+                            <div class="flex items-center gap-2">
+                                <button onclick="togglePlay(${beat.id})" class="w-10 h-10 rounded-full bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-white transition-colors" title="${isPlaying ? 'Pause' : 'Play'}">
+                                    <i data-lucide="${isPlaying ? 'pause' : 'play'}" class="w-4 h-4 ${isPlaying ? 'fill-current' : ''}"></i>
+                                </button>
+                                <button onclick="openDownloadModal(${beat.id})" class="w-10 h-10 rounded-full bg-white hover:bg-gray-200 flex items-center justify-center text-black transition-colors" title="Download">
+                                    <i data-lucide="download" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    beatsContainer.appendChild(card);
+                });
+                
+                // Re-initialize icons for newly added elements
+                lucide.createIcons();
+            }
+        }
+
+        // --- Audio Logic ---
+        function togglePlay(beatId) {
+            const beat = beats.find(b => b.id === beatId);
+            
+            // If clicking the currently playing beat, toggle pause/play
+            if (currentPlayingId === beatId) {
+                if (currentAudio.paused) {
+                    currentAudio.play();
+                } else {
+                    currentAudio.pause();
+                    currentPlayingId = null; // Remove active state visually
+                }
+                renderBeats(searchInput.value); // Re-render to update UI
+                return;
+            }
+
+            // If another beat is playing, stop it
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+            }
+
+            // Play new beat
+            currentAudio = new Audio(beat.file);
+            currentAudio.play().catch(error => {
+                console.error("Audio playback failed. Please ensure the audio files are uploaded to the GitHub repository.", error);
+                // We don't use alert() as per best practices, just log or show subtle UI if needed.
+            });
+            
+            currentPlayingId = beatId;
+            
+            // When audio ends naturally
+            currentAudio.addEventListener('ended', () => {
+                currentPlayingId = null;
+                renderBeats(searchInput.value);
+            });
+
+            renderBeats(searchInput.value); // Update UI to show playing state
+        }
+
+        // --- Search Logic ---
+        searchInput.addEventListener('input', (e) => {
+            renderBeats(e.target.value);
+        });
+
+        // --- Modal & Download Logic ---
+        function openDownloadModal(beatId) {
+            const beat = beats.find(b => b.id === beatId);
+            beatToDownload = beat;
+            modalBeatName.textContent = beat.title.toUpperCase();
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Small delay to allow CSS transition
+            setTimeout(() => {
+                modal.classList.add('active');
+            }, 10);
+        }
+
+        function closeDownloadModal() {
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                beatToDownload = null;
+            }, 300); // Matches CSS transition duration
+        }
+
+        function triggerDownload() {
+            if (!beatToDownload) return;
+            
+            // Create a temporary anchor tag to force download
+            const link = document.createElement('a');
+            link.href = beatToDownload.file;
+            link.download = `LUMUS_${beatToDownload.title}_${beatToDownload.bpm}BPM.mp3`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            closeDownloadModal();
+        }
+
+        // Modal Event Listeners
+        btnCloseModal.addEventListener('click', closeDownloadModal);
+        btnCancel.addEventListener('click', closeDownloadModal);
+        btnAgree.addEventListener('click', triggerDownload);
+        
+        // Close modal if clicking outside the box
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeDownloadModal();
+        });
+
+        // Initial render
+        renderBeats();
+
+    </script>
+</body>
+</html>
