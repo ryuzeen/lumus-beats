@@ -220,8 +220,11 @@
                 </div>
             </div>
             
-            <!-- Right spacing -->
-            <div class="hidden md:block w-1/4"></div>
+            <!-- Volume Control (Right spacing) -->
+            <div class="hidden md:flex w-1/4 items-center justify-end gap-3 pr-2">
+                <i data-lucide="volume-2" class="w-4 h-4 text-zinc-500" id="volume-icon"></i>
+                <input type="range" id="player-volume" value="100" min="0" max="100" class="w-24 h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer">
+            </div>
         </div>
     </div>
 
@@ -242,6 +245,7 @@
         let currentAudio = null;
         let currentPlayingId = null;
         let beatToDownload = null;
+        let currentVolume = 1.0; // Starts at 100%
 
         // --- DOM Elements ---
         const beatsContainer = document.getElementById('beats-container');
@@ -267,6 +271,10 @@
         const playerProgress = document.getElementById('player-progress');
         const playerTimeCurrent = document.getElementById('player-time-current');
         const playerTimeTotal = document.getElementById('player-time-total');
+        
+        // Volume Elements
+        const playerVolume = document.getElementById('player-volume');
+        const volumeIcon = document.getElementById('volume-icon');
 
         // --- Intro Sequence ---
         window.addEventListener('load', () => {
@@ -411,6 +419,7 @@
 
             // Play new beat
             currentAudio = new Audio(beat.file);
+            currentAudio.volume = currentVolume; // Apply the selected volume
             currentAudio.play().catch(error => {
                 console.error("Audio playback failed. Please ensure the audio files are uploaded to the GitHub repository.", error);
             });
@@ -453,6 +462,26 @@
                 currentAudio.currentTime = seekTime;
                 playerTimeCurrent.textContent = formatTime(seekTime);
             }
+        });
+
+        // Volume Control Listener
+        playerVolume.addEventListener('input', (e) => {
+            const vol = e.target.value / 100;
+            currentVolume = vol; // Save globally so next beats use this volume
+            
+            if (currentAudio) {
+                currentAudio.volume = vol;
+            }
+
+            // Update Icon dynamically
+            if (vol === 0) {
+                volumeIcon.setAttribute('data-lucide', 'volume-x');
+            } else if (vol < 0.5) {
+                volumeIcon.setAttribute('data-lucide', 'volume-1');
+            } else {
+                volumeIcon.setAttribute('data-lucide', 'volume-2');
+            }
+            lucide.createIcons(); // Refresh the icon
         });
 
         // --- Search Logic ---
