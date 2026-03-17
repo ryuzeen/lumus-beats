@@ -180,26 +180,34 @@
             </button>
             
             <div class="flex items-center gap-3 mb-4 text-white">
-                <i data-lucide="alert-triangle" class="w-6 h-6 text-yellow-500"></i>
-                <h3 class="text-xl font-bold uppercase tracking-wider">Usage Terms</h3>
+                <i data-lucide="unlock" class="w-6 h-6 text-zinc-300"></i>
+                <h3 class="text-xl font-bold uppercase tracking-wider">Unlock Download</h3>
             </div>
             
-            <div class="space-y-4 text-zinc-400 text-sm leading-relaxed mb-8">
+            <div class="space-y-4 text-zinc-400 text-sm leading-relaxed mb-6">
                 <p>
                     You are about to download <span id="modal-beat-name" class="font-bold text-white"></span>.
                 </p>
-                <p class="p-3 bg-zinc-900 rounded-lg border border-zinc-800 text-zinc-300">
+                <p class="p-3 bg-zinc-900 rounded-lg border border-zinc-800 text-zinc-300 text-xs">
                     "Don't forget to give credits <strong>'prod. lumus'</strong>. It's free, but if you don't give credits, you are subject to copyright strikes."
                 </p>
-                <p>Do you agree to these terms?</p>
             </div>
             
-            <div class="flex gap-3">
-                <button id="btn-cancel" class="flex-1 py-3 px-4 rounded bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-semibold transition-colors uppercase tracking-wider">
-                    Cancel
+            <div class="flex flex-col gap-3">
+                <!-- Step 1: Subscribe -->
+                <a href="https://www.youtube.com/@prod.barbara?sub_confirmation=1" target="_blank" id="btn-subscribe" class="w-full py-3 px-4 rounded bg-[#FF0000] hover:bg-red-700 text-white text-sm font-bold transition-colors uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg">
+                    <i data-lucide="youtube" class="w-5 h-5"></i> 1. Subscribe to unlock
+                </a>
+                
+                <!-- Step 2: Download -->
+                <button id="btn-agree" disabled class="w-full py-3 px-4 rounded bg-zinc-800 text-zinc-600 cursor-not-allowed text-sm font-bold transition-all uppercase tracking-wider flex items-center justify-center gap-2">
+                    <span id="btn-agree-text" class="flex items-center gap-2">
+                        <i data-lucide="lock" class="w-4 h-4" id="lock-icon"></i> 2. Complete Step 1
+                    </span>
                 </button>
-                <button id="btn-agree" class="flex-1 py-3 px-4 rounded bg-white hover:bg-gray-200 text-black text-sm font-bold transition-colors uppercase tracking-wider flex items-center justify-center gap-2">
-                    <i data-lucide="download" class="w-4 h-4"></i> I Agree
+                
+                <button id="btn-cancel" class="mt-2 w-full py-2 px-4 rounded text-zinc-500 hover:text-white text-xs font-semibold transition-colors uppercase tracking-wider">
+                    Cancel
                 </button>
             </div>
         </div>
@@ -275,6 +283,8 @@
         const btnCloseModal = document.getElementById('close-modal');
         const btnCancel = document.getElementById('btn-cancel');
         const btnAgree = document.getElementById('btn-agree');
+        const btnSubscribe = document.getElementById('btn-subscribe');
+        const btnAgreeText = document.getElementById('btn-agree-text');
 
         // Player Elements
         const globalPlayer = document.getElementById('global-player');
@@ -512,14 +522,37 @@
             beatToDownload = beat;
             modalBeatName.textContent = beat.title.toUpperCase();
             
+            // Reset state to locked
+            btnAgree.disabled = true;
+            btnAgree.className = "w-full py-3 px-4 rounded bg-zinc-800 text-zinc-600 cursor-not-allowed text-sm font-bold transition-all uppercase tracking-wider flex items-center justify-center gap-2";
+            btnAgreeText.innerHTML = '<i data-lucide="lock" class="w-4 h-4"></i> 2. Complete Step 1';
+            
             modal.classList.remove('hidden');
             modal.classList.add('flex');
+            lucide.createIcons();
             
             // Small delay to allow CSS transition
             setTimeout(() => {
                 modal.classList.add('active');
             }, 10);
         }
+
+        // Sub2Unlock Logic
+        btnSubscribe.addEventListener('click', () => {
+            if(!btnAgree.disabled) return; // If already unlocked, do nothing
+            
+            // Show checking animation
+            btnAgreeText.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Checking...';
+            lucide.createIcons();
+            
+            // Simulate API verification delay (10 seconds)
+            setTimeout(() => {
+                btnAgree.disabled = false;
+                btnAgree.className = "w-full py-3 px-4 rounded bg-white hover:bg-gray-200 text-black text-sm font-bold transition-all uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,255,255,0.3)]";
+                btnAgreeText.innerHTML = '<i data-lucide="download" class="w-4 h-4"></i> 2. Agree & Download';
+                lucide.createIcons();
+            }, 10000);
+        });
 
         function closeDownloadModal() {
             modal.classList.remove('active');
@@ -531,7 +564,7 @@
         }
 
         function triggerDownload() {
-            if (!beatToDownload) return;
+            if (!beatToDownload || btnAgree.disabled) return;
             
             // Create a temporary anchor tag to force download
             const link = document.createElement('a');
